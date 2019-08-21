@@ -9,9 +9,8 @@ import pdb
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as patches
 from matplotlib.patches import Rectangle
-import dialogs
 #import photos iOS specific
-
+import dialogs
 
 """set design parameters"""
 alpha1 = 2 #input("Enter inital angle:")
