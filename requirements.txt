@@ -1,4 +1,6 @@
+antiorm==1.2.1
 backports.functools-lru-cache==1.5
+Cerberus==1.3.1
 certifi==2019.6.16
 chardet==3.0.4
 Click==7.0
@@ -9,8 +11,10 @@ dash-daq==0.1.0
 dash-html-components==1.0.0
 dash-renderer==1.0.0
 dash-table==4.1.0
+db-api==0.2.1
 Dialogs==0.14
 Django==1.11.23
+ecdsa==0.13
 fancycompleter==0.8
 Flask==1.1.1
 Flask-Compress==1.4.0
@@ -21,12 +25,15 @@ Jinja2==2.10.1
 kiwisolver==1.1.0
 MarkupSafe==1.1.1
 matplotlib==2.2.4
+mysql-connector==2.2.9
 numpy==1.16.4
 pandas==0.25.0
 pdbpp==0.10.0
 Pillow==6.1.0
 plotly==4.1.0
+pycryptodome==3.9.0
 Pygments==2.4.2
+PyJWT==1.7.1
 pyparsing==2.4.2
 pyrepl==0.9.0
 python-dateutil==2.8.0
@@ -34,9 +41,13 @@ pytz==2019.2
 PyYAML==5.1.2
 requests==2.22.0
 retrying==1.3.3
+scipy==1.3.1
 six==1.12.0
+SQLAlchemy==1.3.8
+sqlcollection==0.3.0
 subprocess32==3.5.4
 urllib3==1.25.3
+user-api==0.6.0
 utils==0.9.0
 Werkzeug==0.15.5
 wmctrl==0.3

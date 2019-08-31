@@ -27,7 +27,7 @@ server = app.server
 APP_PATH = str(pl.Path(__file__).parent.resolve())
 
 app.layout = html.Div(
-    className="",
+    className="",a
     children=[
         html.Div(
             className="banner",
