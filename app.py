@@ -16,8 +16,6 @@ from dash.dependencies import Input, Output, State
 
 import utils
 import math
-import matplotlib
-matplotlib.use('MacOSX')
 from pylab import *
 import matplotlib.pyplot as plt
 import matplotlib.image as mping
@@ -26,7 +24,6 @@ import matplotlib.transforms as mtransforms
 import matplotlib.patches as patches
 from matplotlib.patches import Rectangle
 import dialogs
-from helpers import make_dash_table, create_plot
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 import plotly.graph_objects as go

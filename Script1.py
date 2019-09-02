@@ -13,8 +13,6 @@ import dialogs
 #import photos iOS specific
 
 
-
-
 """set design parameters"""
 alpha1 = 2 #input("Enter inital angle:")
 """ DE BUG WITH 2 !!!!"""
