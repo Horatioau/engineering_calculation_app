@@ -8,13 +8,13 @@ import dash
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
 from dash.dependencies import Input, Output, State
 
 import utils
-
 import math
 import matplotlib
 matplotlib.use('MacOSX')
@@ -26,31 +26,35 @@ import matplotlib.transforms as mtransforms
 import matplotlib.patches as patches
 from matplotlib.patches import Rectangle
 import dialogs
-
-table_header_style = {
-    "backgroundColor": "rgb(2,21,70)",
-    "color": "white",
-    "textAlign": "center",
-}
+from helpers import make_dash_table, create_plot
+from dash.exceptions import PreventUpdate
+import plotly.express as px
+import plotly.graph_objects as go
 
 
-app = dash.Dash(__name__)
+#app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
 APP_PATH = str(pl.Path(__file__).parent.resolve())
 
 app.layout = html.Div([
-    html.Div([
+dbc.Row([
+    dbc.Col(
         html.Div([
             html.Label(
-             [
-                html.Div(["alpha1"]),
-                dcc.Input(
-                    id='alpha1',
-                    type='number',
-                    value=2
-                ),
+                 [
+                    html.Div(["alpha1"]),
+                    dcc.Input(
+                        id='alpha1',
+                        type='number',
+                        value=2
+                    ),
+                ]),
             ]),
+        width={"size": 2, "offset": 1}
+    ),
+    dbc.Col(
         html.Div([
              html.Label(
              [
@@ -62,19 +66,36 @@ app.layout = html.Div([
                     ),
                 ]),
             ]),
-            html.Div([
-                 html.Label(
-                 [
-                    html.Div(["radius"]),
+    width=2),
+    dbc.Col(
+        html.Div([
+             html.Label(
+             [
+                html.Div(["length2"]),
                     dcc.Input(
-                        id='radius',
+                        id='length2',
                         type='number',
-                        value=250
+                        value=25
                     ),
                 ]),
             ]),
-            html.Div([
-                 html.Label(
+    width=2),
+    dbc.Col(
+        html.Div([
+             html.Label(
+             [
+                html.Div(["radius"]),
+                dcc.Input(
+                    id='radius',
+                    type='number',
+                    value=250
+                ),
+            ]),
+        ]),
+    width=2),
+    dbc.Col(
+        html.Div([
+            html.Label(
                  [
                     html.Div(["alpha2"]),
                     dcc.Input(
@@ -82,87 +103,101 @@ app.layout = html.Div([
                         type='number',
                         value=15
                     ),
-                ]),
+                ])
             ]),
-            html.Div([
-                 html.Label(
-                 [
-                    html.Div(["a"]),
-                    dcc.Input(
-                        id='a',
-                        type='number',
-                        value=.4
-                    ),
-                ]),
-            ]),
-            html.Div([
+    width=2)
+]),
+dbc.Row([
+    dbc.Col(
+        html.Div([
              html.Label(
-                 [
-                    html.Div(["TOB"]),
-                    dcc.Input(
-                        id='TOB',
-                        type='number',
-                        value=1.0
-                    ),
-                ]),
+             [
+                html.Div(["a"]),
+                dcc.Input(
+                    id='a',
+                    type='number',
+                    value=.4
+                ),
             ]),
-            html.Div([
-                 html.Label(
-                 [
-                    html.Div(["b"]),
-                    dcc.Input(
-                        id='b',
-                        type='number',
-                        value=1.3
-                    )
-                ])
+        ]),
+    width={"size": 2, "offset": 1}),
+    dbc.Col(
+        html.Div([
+            html.Label(
+            [
+                html.Div(["TOB"]),
+                dcc.Input(
+                    id='TOB',
+                    type='number',
+                    value=1.0
+                ),
             ]),
-            html.Div([
-                 html.Label(
-                 [
-                    html.Div(["Head Offset"]),
-                    dcc.Input(
-                        id='head_offset',
-                        type='number',
-                        value=1.3
-                    )
-                ])
+        ]),
+    width=2),
+    dbc.Col(
+        html.Div([
+             html.Label(
+             [
+                html.Div(["b"]),
+                dcc.Input(
+                    id='b',
+                    type='number',
+                    value=1.3
+                )
             ])
-        ])
-    ]),
-    dcc.Graph(id='indicator-graphic')
+        ]),
+    width=2),
+    dbc.Col(
+        html.Div([
+             html.Label(
+             [
+                html.Div(["Head Offset"]),
+                dcc.Input(
+                    id='head_offset',
+                    type='number',
+                    value=1.3
+                )
+            ])
+        ]),
+    width=2),
+    dbc.Col(
+        html.Div([
+             html.Label(
+             [
+                html.Div(["Take Up"]),
+                dcc.Input(
+                    id='take_up',
+                    type='number',
+                    value=0
+                )
+            ])
+        ]),
+    width=2)
+
+]),
+dbc.Row([
+    dbc.Col(
+        html.Div([
+            html.Button('Calculate', id='button')
+        ]),
+        width={"size": 6, "offset": 3}
+    )
+]),
+dbc.Row(
+        dbc.Col(
+            html.Div([
+                html.H1('Plots'),
+                    dcc.Tabs(id="tabs", value='tab-1', children=[
+                        dcc.Tab(label='Figure 1', value='tab-1'),
+                        dcc.Tab(label='Figure 2', value='tab-2'),
+                        dcc.Tab(label='Figure 3', value='tab-3'),
+                        dcc.Tab(label='Figure 4', value='tab-4'),
+                        ]),
+                html.Div(id='tabscontent')
+            ]),width={"size":10, "offset":1}
+        )
+    )
 ])
-
-
-groundx = [0,50,51,150,200,400]
-groundy = [0,0,0,0,0,0]
-ground = np.matrix([groundx,groundy])
-#
-#
-#
-#
-#
-# #set design parameters#
-# alpha1 = 2 #input("Enter inital angle:")
-# # DE BUG WITH 2 !!!!#
-# length1 = 50# input("Enter inital horizontal length:")
-# radius = 250 #input("Enter radius:")
-# #DE BUG WITH RADIUS 0#
-# alpha2 = 15# input("Enter final angle:")
-# length2 = 25# input("Enter final horizontal length:")
-# groundx = [0,50,51,150,200,400]
-# groundy = [0,0,0,0,0,0]
-# ground = np.matrix([groundx,groundy])
-# head_offset = 3
-# a = .4 #TOI above gantry pivot
-# TOB = 1.0 # top of belt above ground @ tail pulley
-# b = 1.3 #depth of gantry
-
-# set lists #
-gantry_list=[]
-trestle_list=[]
-llm_list = []
-ebm_list=[]
 
 
 # helper functions#
@@ -170,40 +205,43 @@ def rotation(theta,exist_point,origin):
 
 	theta = np.radians(theta)
 	vec = exist_point-origin
-	r = np.array(( (np.cos(theta), -np.sin(theta)),
+	r = np.array(( (np.cos(theta), - np.sin(theta)),
                (np.sin(theta),  np.cos(theta)) ))
 
 	new_point = np.dot(vec,r)+origin
 	return new_point
 
 class gantry():
-	def __init__(self,x2,y2,angle,length):
-		# x1 and y1 are the pivot points of the lower end of the gantry
-		#angle +'ve is anti-clockwise'
-		self.x2 = x2
-		self.y2 = y2
-		self.angle = angle
-		self.length = length
-		if self.length ==2:
-			self.take_up = True
+    def __init__(self,x2,y2,angle,length,a,b):
+        # x1 and y1 are the pivot points of the lower end of the gantry
+        #angle +'ve is anti-clockwise'
+        self.x2 = x2
+        self.y2 = y2
+        self.angle = angle
+        self.length = length
+        self.b = b
+        self.a = a
 
-		#main attachment points#
-		self.x1 = x2 - length*math.cos(math.radians(angle))
-		self.y1 = y2 - length*math.sin(math.radians(angle))
+        if self.length ==2:
+            self.take_up = True
 
-		#truss#
-		self.truss = np.matrix([[i,-j*b] for i in range(length+1) for j in range(2)])
-		theta = -math.radians(angle)
-		c , s = math.cos(theta) , math.sin(theta)
-		R = np.matrix([[c, -s],[s ,c]])
-		self.truss_rotated = np.dot(self.truss,R) + np.matrix([self.x1,self.y1])
+        #main attachment points#
+        self.x1 = x2 - length*math.cos(math.radians(angle))
+        self.y1 = y2 - length*math.sin(math.radians(angle))
 
-		#idlers#
-		self.idler_coods = np.matrix([[1+(self.length-2)/4*(i),a] for i in range(5)])
-		theta = -math.radians(angle)
-		c , s = math.cos(theta) , math.sin(theta)
-		R = np.matrix([[c, -s],[s ,c]])
-		self.idler_coods_rotated = np.dot(self.idler_coods,R)+np.matrix([self.x1,self.y1])
+        #truss#
+        self.truss = np.matrix([[i,-j*b] for i in range(length+1) for j in range(2)])
+        theta = -math.radians(angle)
+        c , s = math.cos(theta) , math.sin(theta)
+        R = np.matrix([[c, -s],[s ,c]])
+        self.truss_rotated = np.dot(self.truss,R) + np.matrix([self.x1,self.y1])
+
+        #idlers#
+        self.idler_coords = np.matrix([[1+(self.length-2)/4*(i),a] for i in range(5)])
+        theta = -math.radians(angle)
+        c , s = math.cos(theta) , math.sin(theta)
+        R = np.matrix([[c, -s],[s ,c]])
+        self.idler_coords_rotated = np.dot(self.idler_coords,R)+np.matrix([self.x1,self.y1])
 
 
 class trestle():
@@ -212,202 +250,306 @@ class trestle():
 		self.x1 = x0
 		self.y0 = y0
 		self.y1 = y1
-		self.coodsx = [self.x0,self.x1]
-		self.coodsy = [self.y0,self.y1]
+		self.coordsx = [self.x0,self.x1]
+		self.coordsy = [self.y0,self.y1]
 
-def gradient(x):
-	if x > Head_x:
+class ground_class():
+    def __init__(self, xcoords,ycoords):
+        self.x = xcoords
+        self.y = ycoords
+        self.grid = np.matrix([xcoords,ycoords])
+
+
+class belt_properties():
+    def __init__(self,length1,length2,alpha1,alpha2, TOB, radius):
+        #calculate key points#
+        self.radius = radius
+        self.alpha1 = alpha1
+        self.alpha2 = alpha2
+        self.TOB = TOB
+        self.length1 = length1
+        self.length2 = length2
+
+        self.TP1_x = length1*math.cos(math.radians(alpha1))
+        self.TP1_y = length1*math.sin(math.radians(alpha1))+TOB
+        self.CIR_x = self.TP1_x - radius*math.sin(math.radians(alpha1))
+        self.CIR_y = self.TP1_y + radius*math.cos(math.radians(alpha1))
+        self.TP2 = rotation((alpha1-alpha2),np.matrix([self.TP1_x,self.TP1_y]),np.matrix([self.CIR_x,self.CIR_y]))
+        self.TP2_x = self.TP2[0,0]
+        self.TP2_y = self.TP2[0,1]
+        self.Head_x = self.TP2_x+length2*math.cos(math.radians(alpha2))
+        self.Head_y = self.TP2_y+length2*math.sin(math.radians(alpha2))
+
+
+def gradient(x, bp):
+	if x > bp.Head_x:
 		return 0
 	else:
-		return (belt(x)-belt(x-0.1))/(.1)
+		return (belt(x, bp)-belt(x-0.1, bp))/(.1)
 
-def ground(x):
+def ground_interp(x, ground):
 	# a function to compute the y value of the ground for the given x
-	return np.interp(x,groundx,groundy)
+	return np.interp(x,ground.x,ground.y)
 
-def belt(x):
+def belt(x, bp):
 	# a function to computer the y value of the belt at the given x
-	if x < TP1_x:
-		return x*math.tan(math.radians(alpha1))+TOB
-	elif x < TP2_x:
-		return CIR_y-math.sqrt(radius**2-(x-CIR_x)**2)
-	elif x < Head_x and x > TP2_x:
-		xcoods = [TP2_x,Head_x]
-		ycoods = [TP2_y,Head_y]
-		return np.interp(x,xcoods,ycoods)
+	if x < bp.TP1_x:
+		return x*math.tan(math.radians(bp.alpha1))+bp.TOB
+	elif x < bp.TP2_x:
+		return bp.CIR_y-math.sqrt(bp.radius**2-(x-bp.CIR_x)**2)
+	elif x < bp.Head_x and x > bp.TP2_x:
+		xcoords = [bp.TP2_x,bp.Head_x]
+		ycoords = [bp.TP2_y,bp.Head_y]
+		return np.interp(x,xcoords,ycoords)
 
 def dist(x1,y1,x2,y2):
 	return math.sqrt((y2-y1)**2+(x2-x1)**2)
 
-def get_pack_heights(gan_ob): # OOP method !! gan_ob is a class
+def get_pack_heights(gan_ob, bp): # OOP method !! gan_ob is a class
 	idler_pack = []
-	for coods in gan_ob.idler_coods_rotated: #coods is a matrix list of x&y coods of the gantry nodes in position
-		pack_height = belt(coods[0,0])-coods[0,1]
+	for coords in gan_ob.idler_coords_rotated: #coords is a matrix list of x&y coords of the gantry nodes in position
+		pack_height = belt(coords[0,0], bp)-coords[0,1]
 		idler_pack.append(pack_height)
 	min_pack_h2 = min(idler_pack)
 	max_pack_h2 = max(idler_pack)
 	return min_pack_h2, max_pack_h2
 
+def plot_belt(bp):
+
+    xcircle = np.linspace(bp.TP1_x,bp.TP2_x,50)-bp.CIR_x
+    ycircle = -np.sqrt(bp.radius**2-xcircle**2)+bp.CIR_y
+
+    x_belt = [bp.TP1_x]
+    for i in xcircle:
+    	x_belt.append(i+bp.CIR_x)
+    x_belt.append(bp.Head_x)
+
+    y_belt = [bp.TP1_y]
+    for i in ycircle:
+    	y_belt.append(i)
+    y_belt.append(bp.Head_y)
+
+    xcircle = np.linspace(bp.TP1_x,bp.TP2_x,50)-bp.CIR_x
+    ycircle = -np.sqrt(bp.radius**2-xcircle**2)+bp.CIR_y
 
 
-#pdb.set_trace()
+    data = {"xb": x_belt, "yb": y_belt}
+    data2 = {"xc": xcircle+bp.CIR_x, "yc": ycircle}
+    df = pd.DataFrame(data)
+    df2 = pd.DataFrame(data2)
 
-def plot_belt(*args, **kwargs):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df["xb"], y=df["yb"], mode='lines+markers', name= 'Belt'))
+    fig.add_trace(go.Scatter(x=df2["xc"], y=df2["yc"], mode='lines+markers', name= 'Circle'))
+    fig.add_trace(go.Scatter(x=[0,bp.TP1_x], y=[bp.TOB,bp.TP1_y], mode='lines+markers', name= 'Take up?'))
 
-	ax.plot([0,TP1_x],[TOB,TP1_y], color = 'black', linewidth =1)
+    fig.update_xaxes(range=[0, bp.Head_x])
+    fig.update_yaxes(range=[0, bp.Head_y*2])
 
-	xcircle = np.linspace(TP1_x,TP2_x,50)-CIR_x
-	ycircle = -np.sqrt(radius**2-xcircle**2)+CIR_y
+    fig.update_layout(
+        title=go.layout.Title(
+            text="plot_belt",
+        ),
+        xaxis=go.layout.XAxis(
+            title=go.layout.xaxis.Title(
+                text="x Axis"
+            )
+        ),
+        yaxis=go.layout.YAxis(
+            title=go.layout.yaxis.Title(
+                text="y Axis",
+            )
+        )
+    )
 
-	x_belt = [TP1_x]
-	for i in xcircle:
-		x_belt.append(i+CIR_x)
-	x_belt.append(Head_x)
-
-	y_belt = [TP1_y]
-	for i in ycircle:
-		y_belt.append(i)
-	y_belt.append(Head_y)
-
-	ax.plot(x_belt,y_belt, color ='black', linewidth =0.75)
-
-	xcircle = np.linspace(TP1_x,TP2_x,50)-CIR_x
-	ycircle = -np.sqrt(radius**2-xcircle**2)+CIR_y
-
-	ax.plot(xcircle+CIR_x,ycircle, color ='black', linewidth = 0.75)
-
-	ax.set_xlim(0, Head_x)
-	ax.set_ylim(0, Head_y*2)
-	plt.savefig('foo.png')
-	plt.show()
-
-def plot_ground():
-	# plot grounds #
-	ax.plot(groundx,groundy, color ='darkred', linewidth =1.5)
-
-def plot_truss():
-	for j in range(len(gantry_list)):
-		xtruss = [i[0,0] for i in gantry_list[j].truss_rotated]
-		xtruss.append(gantry_list[j].truss_rotated[1,0])
-		ytruss = [i[0,1] for i in gantry_list[j].truss_rotated]
-		ytruss.append(gantry_list[j].truss_rotated[1,1])
-		ax.plot(xtruss,ytruss, color='black', linewidth = .5)
-
-def plot_steel():
-
-	### steel line plotting
-	x_llm = [column[0] for column in llm_list]
-	y_llm = [column[1] for column in llm_list]
-	plt.plot(x_llm,y_llm, color ='lightblue', linewidth =1)
-
-	x_ebm = [column[0] for column in ebm_list]
-	y_ebm = [column[1] for column in ebm_list]
-	ax.plot(x_ebm,y_ebm, color ='lightgreen', linewidth =1)
-
-	x_gan = [i.x1 for i in gantry_list]
-	x_gan.insert(0,gantry_list[0].x2)
-	y_gan = [i.y1 for i in gantry_list]
-	y_gan.insert(0,gantry_list[0].y2)
-	ax.plot(x_gan,y_gan, color ='black', linewidth =0.7)
-
-	for i in gantry_list:
-		if i.length ==2:
-			continue
-		ax.annotate(i.length, xy=(i.x1+i.length/2, i.y1), xycoords='data', xytext=(0, -0.5), textcoords='offset points',fontsize=8, color = 'red')
-
-	for i in range(len(trestle_list)):
-		ax.plot(trestle_list[i].coodsx,trestle_list[i].coodsy, color ='black', linewidth =0.75)
-
-	for i in trestle_list:
-		ax.annotate(int(round((i.y1-i.y0),0)), xy=(i.x0, i.y1/2), xycoords='data', xytext=(5, 0), textcoords='offset points',fontsize=8, color = 'green')
+    return fig
 
 
-def procedure():
-    #plot belt#
-    plot_belt()
-    plot_ground()
+def plot_ground(ground):
+    data = {"x": ground.x, "y": ground.y}
+    df = pd.DataFrame(data)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df["x"], y=df["y"], mode="lines", name='Ground', line=dict(color ='darkred', width =1.5)))
+
+    fig.update_layout(
+        title=go.layout.Title(
+            text="plot_ground",
+        ),
+        xaxis=go.layout.XAxis(
+            title=go.layout.xaxis.Title(
+                text="x Axis"
+            )
+        ),
+        yaxis=go.layout.YAxis(
+            title=go.layout.yaxis.Title(
+                text="y Axis",
+            )
+        )
+    )
+
+    return fig
+
+def plot_truss(gantry_list):
+
+    for j in range(len(gantry_list)):
+    	xtruss = [i[0,0] for i in gantry_list[j].truss_rotated]
+    	xtruss.append(gantry_list[j].truss_rotated[1,0])
+    	ytruss = [i[0,1] for i in gantry_list[j].truss_rotated]
+    	ytruss.append(gantry_list[j].truss_rotated[1,1])
+
+
+    data = {"x_truss": xtruss,
+            "y_truss": ytruss
+            }
+
+    df = pd.DataFrame(data)
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df["x_truss"], y=df["y_truss"], mode="lines+markers",line=dict(color='black', width = .5), name='Truss Plot'))
+
+    fig.update_layout(
+        title=go.layout.Title(
+            text="plot_truss",
+        ),
+        xaxis=go.layout.XAxis(
+            title=go.layout.xaxis.Title(
+                text="x Axis"
+            )
+        ),
+        yaxis=go.layout.YAxis(
+            title=go.layout.yaxis.Title(
+                text="y Axis",
+            )
+        )
+    )
+
+    return fig
+
+def plot_steel(llm_list, ebm_list, gantry_list, trestle_list):
+
+    ### steel line plotting
+    x_llm = [column[0] for column in llm_list]
+    y_llm = [column[1] for column in llm_list]
+    x_ebm = [column[0] for column in ebm_list]
+    y_ebm = [column[1] for column in ebm_list]
+    x_gan = [i.x1 for i in gantry_list]
+    x_gan.insert(0,gantry_list[0].x2)
+    y_gan = [i.y1 for i in gantry_list]
+    y_gan.insert(0,gantry_list[0].y2)
+
+    x_tres=[i.coordsx for i in trestle_list]
+    y_tres=[i.coordsy for i in trestle_list]
+
+    x_gan_anno = [i.x1+i.length/2 for i in gantry_list]
+    y_gan_anno = [i.y1 for i in gantry_list]
+    text_gan_anno = [i.length for i in gantry_list]
+
+    text_tres_anno = [int(round((i.y1-i.y0),0)) for i in trestle_list]
+    x_tres_anno =[i.x0 for i in trestle_list]
+    y_tres_anno =[i.y1*.66 for i in trestle_list]
+
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x_llm, y=y_llm, mode='lines+markers', line=dict(color='lightblue', width=1), name="LLM"))
+    fig.add_trace(go.Scatter(x=x_ebm, y=y_ebm, mode='lines+markers', line=dict(color='lightgreen', width=1), name="EBM"))
+    fig.add_trace(go.Scatter(x=x_gan, y=y_gan, mode='lines',line=dict(color='black', width=0.7), name="gan"))
+    fig.add_trace(go.Scatter(x=x_tres, y=y_tres, mode='markers', marker=dict(color='navy', size=10), name="tres"))
+    fig.add_trace(go.Scatter(x=x_gan_anno, y=y_gan_anno, text = text_gan_anno,  mode = 'text', textfont=dict(size=12, color = 'red'), name="Gantry Length"))
+    fig.add_trace(go.Scatter(x=x_tres_anno, y=y_tres_anno, text = text_tres_anno, mode = 'text', textfont=dict(size=12, color = 'green'), name="Trestle Height"))
+
+    fig.update_layout(
+        title=go.layout.Title(
+            text="plot_steel",
+        ),
+        xaxis=go.layout.XAxis(
+            title=go.layout.xaxis.Title(
+                text="x Axis"
+            )
+        ),
+        yaxis=go.layout.YAxis(
+            title=go.layout.yaxis.Title(
+                text="y Axis",
+            )
+        )
+    )
+    return fig
+
+def procedure(alpha1, length1, length2, radius, alpha2, head_offset, a, TOB,b, take_up):
+    # set lists #
+    gantry_list=[]
+    trestle_list=[]
+    llm_list = []
+    ebm_list=[]
+
+    #ground points, convert to inputs
+    gx = [0,50,51,150,200,400]
+    gy = [0,0,0,0,0,0]
+    ground = ground_class(gx, gy)
+
+    bp=belt_properties(length1,length2,alpha1,alpha2, TOB, radius)
 
     #set initial calc parameters#
-    x1 = Head_x
-    y1 = Head_y
-    take_up = 0
-
-    #plot stuff
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-
-    ax.set_xlim(0, Head_x)
-    ax.set_ylim(min(groundy), Head_y*3)
-
-    #calculate key points#
-    TP1_x = length1*math.cos(math.radians(alpha1))
-    TP1_y = length1*math.sin(math.radians(alpha1))+TOB
-    CIR_x = TP1_x - radius*math.sin(math.radians(alpha1))
-    CIR_y = TP1_y + radius*math.cos(math.radians(alpha1))
-    TP2 = rotation((alpha1-alpha2),np.matrix([TP1_x,TP1_y]),np.matrix([CIR_x,CIR_y]))
-    TP2_x = TP2[0,0]
-    TP2_y = TP2[0,1]
-    Head_x = TP2_x+length2*math.cos(math.radians(alpha2))
-    Head_y = TP2_y+length2*math.sin(math.radians(alpha2))
+    x1 = bp.Head_x
+    y1 = bp.Head_y
 
     # start at head end and move back to offset connection#
-    angle = degrees(math.atan(gradient(Head_x-head_offset)))
-    x_belt = Head_x-head_offset*cos(radians(angle))
-    y_belt = Head_y-head_offset*sin(radians(angle))
+    angle = degrees(math.atan(gradient(bp.Head_x-head_offset,bp)))
+    x_belt = bp.Head_x-head_offset*cos(radians(angle))
+    y_belt = bp.Head_y-head_offset*sin(radians(angle))
 
     #get pivot point of gantry position#
     x2_gantry = x_belt+a*sin(radians(angle))
     y2_gantry = y_belt-a*cos(radians(angle))
 
     #gantries#
-    while (y1 - ground(x1)) > 2.5:
+    while (y1 - ground_interp(x1, ground)) > 2.5:
 
     	#position gantry and check#
     	length = 24
-    	angle = degrees(math.atan(gradient(x2_gantry)))
+    	angle = degrees(math.atan(gradient(x2_gantry, bp)))
 
     	min_pack = 100
     	max_pack = 100
 
     	#add take up tower#
     	#DEBUG to add take up tower at least 1 gantry away from first pivot#
-    	if y2_gantry-ground(x2_gantry) < 12 and take_up == 0:
+    	if y2_gantry-ground_interp(x2_gantry, ground) < 12 and take_up == 0:
     		length = 2
     		take_up = 1
     		min_pack = 0
 
     	while min_pack > 0.05:
-    		min_pack, max_pack = get_pack_heights(gantry(x2_gantry,y2_gantry,angle,length))
+    		min_pack, max_pack = get_pack_heights(gantry(x2_gantry,y2_gantry,angle,length,a,b), bp)
     		if min_pack <= 0.05:
     			break
     		angle -= 0.1
 
     	while max_pack > .4:
-    		min_pack, max_pack = get_pack_heights(gantry(x2_gantry,y2_gantry,angle,length))
+    		min_pack, max_pack = get_pack_heights(gantry(x2_gantry,y2_gantry,angle,length,a,b), bp)
     		if max_pack <= 0.4:
     			break
     		length -= 6
 
     	#get parameters#
-    	x1 = gantry(x2_gantry,y2_gantry,angle,length).x1
-    	y1 = gantry(x2_gantry,y2_gantry,angle,length).y1
+    	x1 = gantry(x2_gantry,y2_gantry,angle,length,a,b).x1
+    	y1 = gantry(x2_gantry,y2_gantry,angle,length,a,b).y1
 
-    	while y1 - ground(x1) < 2.5:
+    	while y1 - ground_interp(x1, ground) < 2.5:
     		length -= 6
-    		x1 = gantry(x2_gantry,y2_gantry,angle,length).x1
-    		y1 = gantry(x2_gantry,y2_gantry,angle,length).y1
+    		x1 = gantry(x2_gantry,y2_gantry,angle,length,a,b).x1
+    		y1 = gantry(x2_gantry,y2_gantry,angle,length,a,b).y1
     		#pdb.set_trace()
     		if length ==6:
     			break
-    		if y1 - ground(x1) >= 2.5:
+    		if y1 - ground_interp(x1, ground) >= 2.5:
     			length += 6
     			break
 
     	#add gantries#
-    	gantry_list.append(gantry(x2_gantry,y2_gantry,angle,length))
+    	gantry_list.append(gantry(x2_gantry,y2_gantry,angle,length,a,b))
 
     	#add trestles #
-    	trestle_list.append(trestle(x1,ground(x1),y1-b)) #check
+    	trestle_list.append(trestle(x1,ground_interp(x1, ground),y1-b)) #check
 
     	# increment to next gantry#
     	x2_gantry = x1
@@ -415,35 +557,74 @@ def procedure():
 
     # add elevated beam module#
     ebm_list.append([x1,y1])
-    while (y1 - ground(x1)) > 1.5:
+    while (y1 - ground_interp(x1, ground)) > 1.5:
     	x1 -= 0.1
-    	y1 = belt(x1)
+    	y1 = belt(x1,bp)
     ebm_list.append([x1,y1])
 
     # add ground module to the end#
     llm_list.append([x1,y1])
     llm_list.append([0,TOB])
 
-    plot_steel()
-    plot_truss()
+
+    fig1 = plot_steel(llm_list, ebm_list, gantry_list, trestle_list)
+    fig2 = plot_truss(gantry_list)
+    fig3 = plot_belt(bp)
+    fig4 = plot_ground(ground)
+
+
+    set_lists = [gantry_list,
+                trestle_list,
+                llm_list,
+                ebm_list]
+
+    fig_list = [fig1,
+                fig2,
+                fig3,
+                fig4,
+                set_lists]
+
+    return(fig_list)
 
 
 @app.callback(
-    Output('indicator-graphic', 'figure'),
-    [Input('alpha1', 'value'),
+    Output('tabscontent', 'children'),
+    [Input('button', 'n_clicks'),
+     Input('alpha1', 'value'),
      Input('length1', 'value'),
+     Input('length2', 'value'),
      Input('radius', 'value'),
      Input('alpha2', 'value'),
      Input('head_offset', 'value'),
      Input('a', 'value'),
      Input('TOB', 'value'),
-     Input('b', 'value')]
+     Input('b', 'value'),
+     Input('take_up', 'value'),
+     Input('tabs', 'value')]
 )
-def update(_):
-    return None
+def update(button, alpha1, length1, length2, radius, alpha2,head_offset,a, TOB,b, take_up, tabs):
+    if button is None:
+        raise PreventUpdate
+    calculations = procedure(alpha1, length1, length2, radius, alpha2,head_offset,a,TOB,b, take_up)
+
+    if tabs == 'tab-1':
+        return html.Div([
+                dcc.Graph(id='graph-1-tabs',figure=calculations[0])
+            ])
+    elif tabs == 'tab-2':
+        return html.Div([
+                dcc.Graph(id='graph-2-tabs',figure=calculations[1])
+            ])
+    elif tabs == 'tab-3':
+        return html.Div([
+                dcc.Graph(id='graph-3-tabs',figure=calculations[2])
+            ])
+    elif tabs == 'tab-4':
+        return html.Div([
+                dcc.Graph(id='graph-4-tabs',figure=calculations[3])
+            ])
 
 
 
 if __name__ == '__main__':
-    procedure()
     app.run_server(debug=True)
