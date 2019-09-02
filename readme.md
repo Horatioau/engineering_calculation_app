@@ -1,10 +1,9 @@
 # Engineering Python
 Something about what this does...
 ## Installation
-You will need to have previously installed python3:
-See https://www.python.org/downloads/ and for details.
+You will need to have previously installed python3, see https://www.python.org/downloads/ for details.
 
-From command-line:
+To install the app to run locally, run the following from command-line:
 ```
 git clone https://github.com/andrewthomasjones/engineering_calculation_app.git
 cd engineering_calculation_app
@@ -21,3 +20,11 @@ When you are finished you can deactivate the python virtual environment using:
 ```
 deactivate
 ```
+
+## To-Do list
+* Enter ground values
+* Export gantry and trestke specs as .csv
+* Clean up GUI
+* Add additional calculations
+* Add unit-testing
+* Set up CI pipeline
